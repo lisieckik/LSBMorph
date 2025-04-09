@@ -1158,11 +1158,11 @@ for i in files:
             person_name = i1[-1].split('.')[0]
 
             otherInfoPath = 'dataPath_%s.txt' % person_name
-            otherInfoPath = open(otherInfoPath, 'r').read().split()
+            otherInfoPath = open(otherInfoPath, 'r').readlines()
             kidsData = otherInfoPath[0]
             galaxiesList = otherInfoPath[1]
             secondGalaxiesList = otherInfoPath[2]
-            colorsForPlots = [otherInfoPath[3], otherInfoPath[4], otherInfoPath[5]]
+            colorsForPlots = otherInfoPath[3].split()
             checkboxDataStorage_var = tk.BooleanVar(value=False)
 
 
