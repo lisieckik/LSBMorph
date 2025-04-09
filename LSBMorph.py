@@ -16,9 +16,36 @@ galaxiesList = ''                         # where do you store galaxies to class
 ##########################################################################
 user = 1000
 
-secondGalaxiesListOnline = '/run/user/%i/gvfs/sftp:host=10.107.0.229,user=kidslsbs/data02/Hareesh/KiDS/LSB_search/catalogs/Galfit_versions/All_candidates_r_2.fits'%user
+import os
+import subprocess
+
+# Define variables
+remote_user = "kidslsbs"
+remote_host = "10.107.0.229"
+remote_path = "/data02/Hareesh/KiDS"
+local_mount = os.path.expanduser("~/remote_kids_data")
+password = "kids_lsbs"
+
+# Step 1: Create local mount point
+os.makedirs(local_mount, exist_ok=True)
+
+# Step 2: Build the sshfs command with sshpass
+sshfs_cmd = [
+    "sshpass", "-p", password,
+    "sshfs", f"{remote_user}@{remote_host}:{remote_path}", local_mount
+]
+
+# Step 3: Run the command
+try:
+    subprocess.run(sshfs_cmd, check=True)
+    print(f"✅ Successfully mounted {remote_path} at {local_mount}")
+except subprocess.CalledProcessError as e:
+    print("❌ Failed to mount remote directory:", e)
+
+
+secondGalaxiesListOnline = 'remote_kids_data/LSB_search/catalogs/Galfit_versions/All_candidates_r_2.fits'%user
 secondGalaxiesList = ''                   # where do you store galaxies with 2nd fit
-kidsDataOnline = '/run/user/%i/gvfs/sftp:host=10.107.0.229,user=kidslsbs/data02/Hareesh/KiDS/LSB_search'%user
+kidsDataOnline = 'remote_kids_data/LSB_search'%user
 kidsData = ''                             # where do you store images
 colorsForPlots = ['viridis', 'red','black']
 # some random IDs which look cool
@@ -169,19 +196,6 @@ def prepareTable():
         return
     # Do you have connection to the VPN
     if checkboxDataStorage_var.get():
-        #sometimes the user ip can be different, check if it works now
-        if os.path.exists(kidsDataOnline + '/r_imgblocks'):
-            user = 1000
-            while user<1050:
-                test = '/run/user/%i/gvfs/sftp:host=10.107.0.229,user=kidslsbs/data02/Hareesh/KiDS/LSB_search' % user
-                if os.path.exists(test + '/r_imgblocks'):
-                    secondGalaxiesListOnline = '/run/user/%i/gvfs/sftp:host=10.107.0.229,user=kidslsbs/data02/Hareesh/KiDS/LSB_search/catalogs/Galfit_versions/All_candidates_r_2.fits' % user
-                    secondGalaxiesList = ''  # where do you store galaxies with 2nd fit
-                    kidsDataOnline = '/run/user/%i/gvfs/sftp:host=10.107.0.229,user=kidslsbs/data02/Hareesh/KiDS/LSB_search' % user
-                    break
-                user +=1
-
-
         if (not os.path.exists(kidsDataOnline + '/r_imgblocks')
                 or not os.path.exists(secondGalaxiesListOnline)):
             newWindowError('Are you sure you are connected to VPN and the LSB computer?')
