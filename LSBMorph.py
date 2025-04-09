@@ -285,6 +285,7 @@ def prepareTable():
         previousTable = previousTable["ID", "Class", "Morphology", "Comments", 'Sky_Bkg', "Date_of_classification", "AwesomeFlag", "ValidRedshift"]
         if remoteTable != None:
             previousTable = vstack(previousTable, remoteTable)
+            previousTable = unique(previousTable, keep='first')
     else:
         if remoteTable != None:
             previousTable = remoteTable
