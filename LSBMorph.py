@@ -1009,7 +1009,7 @@ def resetCheckboxes():
     checkbox23_var.set(False)
     checkbox24_var.set(False)
     checkboxAwesome_var.set(False)
-    checkbox14Redshift_var.set(True)
+    checkbox14Redshift_var.set(False)
 def updateOnlyCheckBoxes(n):
     textNew = ''
     if n == 0:
