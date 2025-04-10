@@ -700,13 +700,14 @@ def make6figures(gal):
         aplpyImage = aplpyImage.transpose(Image.FLIP_TOP_BOTTOM)
     except Exception as Err:
         aplpyImage = sadEmoji()
-        warMessage += 'No aplpy Image!\n'
+        warMessage += 'Unfortunatly, we do not have good color image.\nPlease go to the aladin to see the color image.'
 
     try:
         luptonImage = Image.open(kidsData + '/color_images/Lupton_RGB_Images/' + name + '.png')
     except Exception as Err:
         luptonImage = sadEmoji()
-        warMessage += 'No Lupton Image!\n'
+        if warMessage == '':
+            warMessage += 'Unfortunatly, we do not have good color image.\nPlease go to the aladin to see the color image.'
 
     if warMessage != '':
         newWindowError(message=warMessage)
