@@ -88,7 +88,20 @@ def save_when_close():
     Function for closing
     """
     root.destroy()
-
+def sadEmoji():
+    return array([
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ])
 
 def openAladin():
     global ind, indNow
@@ -671,26 +684,28 @@ def make6figures(gal):
         mask = fits.getdata(kidsData + '/masks_r/mask%s.fits' % name)
         mask = imgblock[1].data * logical_not(mask) * one_jansky_arcsec_kids
         vmax = percentile(mask, 99)
+        vmin = percentile(mask, 50)
     except:
         mask = zeros([200, 200])
         vmax = percentile(imgblock[1].data * one_jansky_arcsec_kids, 99)
+        vmin = percentile(imgblock[1].data * one_jansky_arcsec_kids, 50)
     # Names of the titles
     axisNames = ['Masked r-Band', 'GalfitModel', 'Residual', 'Raw r-band', 'APLpy', 'Zoomed out']
-
+    #
     # Contrast
-    vmax = [vmax, vmax, vmax, percentile(imgblock[1].data * one_jansky_arcsec_kids, 99.7), 0, 0]
+    vmax = [vmax, vmax, vmax, percentile(imgblock[1].data * one_jansky_arcsec_kids,99.7), 0, 0]
     warMessage = ''
     try:
         aplpyImage = Image.open(kidsData + '/color_images/aplpy/' + name + '.png')
         aplpyImage = aplpyImage.transpose(Image.FLIP_TOP_BOTTOM)
     except Exception as Err:
-        aplpyImage = zeros([10,10])
+        aplpyImage = sadEmoji()
         warMessage += 'No aplpy Image!\n'
 
     try:
         luptonImage = Image.open(kidsData + '/color_images/Lupton_RGB_Images/' + name + '.png')
     except Exception as Err:
-        luptonImage = zeros([10,10])
+        luptonImage = sadEmoji()
         warMessage += 'No Lupton Image!\n'
 
     if warMessage != '':
@@ -714,9 +729,9 @@ def make6figures(gal):
 
         # make image
         if i < 4:
-            ax.imshow(images[i], vmax=vmax[i], cmap=colorsForPlots[0])
+            ax.imshow(images[i],vmax=vmax[i], cmap=colorsForPlots[0])
         else:
-            ax.imshow(images[i], vmax=vmax[i])
+            ax.imshow(images[i])
 
         ax.set_yticks([], [])
         ax.set_xticks([], [])
