@@ -112,21 +112,13 @@ def openAladin():
     dec = kidsTable[indNow]['dec']
     url = "https://aladin.unistra.fr/AladinLite/?target=%.5f %.5f&fov=0.1" % (ra, dec)
     webbrowser.open(url)
-
-
 def onEnter(event):
     findNext()
-
-
 def rgb_to_hex(r, g, b):
     return f"#{r:02x}{g:02x}{b:02x}"
-
-
 def saveSmall():
     global newWindowRemake
     newWindowRemake.destroy()
-
-
 def intput_cat(event):
     """
     Function for opening directories browser
@@ -192,8 +184,6 @@ def intput_cat(event):
         secondGalaxiesList = ''
         kidsData = ''
     return 'break'
-
-
 def dataStorage():
     if not checkboxDataStorage_var.get():
         buttonFind2ndCatalog.grid(row=3, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
@@ -205,7 +195,6 @@ def dataStorage():
         buttonFind2ndCatalog.grid_forget()
         entryData.grid_forget()
         entryFind2ndCatalog.grid_forget()
-
 
 #### Used only once at the start ####
 def newWindowError(message=''):
@@ -219,8 +208,6 @@ def newWindowError(message=''):
                        font=("Arial", 20))
     # newWindowError.geometry("%ix%i" % (400, 200))
     war.grid(row=0, column=0, columnspan=1, sticky="ew", padx=20, pady=1)
-
-
 def prepareTable():
     """
     This function prepares or opens the table with results results
@@ -379,7 +366,6 @@ def prepareTable():
 
     findNext(firstTime=True)
 
-
 #### Used only when help needed ####
 def helpMe(event):
     global newWindowHelp, tipNumber, canvasForCircles, ccs, hints, dsHints
@@ -447,8 +433,6 @@ def helpMe(event):
     canvasForCircles.grid(row=2, column=1, sticky='ew')
 
     showTip(0, nCircles, tipsHere)
-
-
 def showTip(n, nmax, tipsHere):
     global tipNumber, newWindowHelp, canvasForCircles, ccs
     if n + tipNumber == nmax:
@@ -476,8 +460,6 @@ def showTip(n, nmax, tipsHere):
     canvas.mpl_connect("motion_notify_event", on_motion)  # Drag on motion
     canvas.mpl_connect("button_release_event", on_release)  # Stop dragging on releas
     return
-
-
 def setColors():
     global newWindowColors, entry_c1, entry_c2, entry_c3, colorsForPlots
     newWindowColors = tk.Toplevel(root)
@@ -510,10 +492,8 @@ def setColors():
 
     buttonSet = tk.Button(newWindowColors, text='Set colors', font=("Arial", 20), command=setForReal)
     buttonSet.grid(row=4, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-
-
 def setForReal():
-    global newWindowColors, entry_c1, entry_c2, entry_c3, colorsForPlots, kidsData, galaxiesList, secondGalaxiesList
+    global newWindowColors, entry_c1, entry_c2, entry_c3, colorsForPlots, kidsData, galaxiesList, secondGalaxiesList, plotsList
     fig = Figure()
     ax = fig.add_axes([0, 0, 1, 1])
     try:
@@ -537,8 +517,18 @@ def setForReal():
     otherInfoPath = open(otherInfoPath, 'w')
     otherInfoPath.write('%s\n%s\n%s\n%s' % (kidsData, galaxiesList, secondGalaxiesList, ' '.join(colorsForPlots)))
     otherInfoPath.close()
-    newWindowColors.destroy()
 
+    try:
+        for ax in plotsList:
+            ax.images[0].set_cmap(colorsForPlots[0])
+            if len(ax.patches) > 0:
+                ax.patches[0].set_edgecolor(colorsForPlots[1])
+        plotsList[3].lines[0].set_color(colorsForPlots[2])
+        plotsList[3].collections[0].set_color(colorsForPlots[2])
+    except Exception as err:
+        print(err)
+        pass
+    newWindowColors.destroy()
 
 #### Show different galaxy ####
 def findNext(firstTime=False):
@@ -607,8 +597,6 @@ def findNext(firstTime=False):
         newWindow.geometry("300x150")
         war = tk.Label(newWindow, text='You finished!', font=("Arial", 20))
         war.pack(fill=tk.BOTH, expand=1)
-
-
 def findPrevious(name=''):
     global ind, indNow, attempt1
     """
@@ -630,8 +618,6 @@ def findPrevious(name=''):
         updateOnChange()
     # show the galaxy
     make6figures(kidsTable[indNow])
-
-
 def skip(name=''):
     global ind, indNow, attempt1
     attempt1 = True
@@ -655,14 +641,12 @@ def skip(name=''):
     resetCheckboxes()
     indNow = ind[-1]
     make6figures(kidsTable[indNow])
-
-
 def make6figures(gal):
     """
     :param gal: Entry from the input table
     :return:
     """
-    global attempt1
+    global attempt1, plotsList
     # Get the ID
     name = gal['ID']
     print(name)
@@ -721,12 +705,13 @@ def make6figures(gal):
               aplpyImage,
               luptonImage]
     ny = 0
-
+    plotsList = []
     for i in range(6):
         if i == 3: ny += 1
         # Make new figure
         fig = Figure(dpi=100)
         ax = fig.add_axes([0, 0, 1, yAxis])
+        plotsList.append(ax)
 
         # make image
         if i < 4:
@@ -738,7 +723,7 @@ def make6figures(gal):
         ax.set_xticks([], [])
 
         # If its galfit, show the ellipse
-        if i < 3:
+        if i < 4:
             ellipse = patches.Ellipse(
                 (gal['X'], gal['Y']),
                 width=(gal['r_r'] * 2 / 0.2),
@@ -770,8 +755,6 @@ def make6figures(gal):
         canvas.mpl_connect("button_press_event", on_click)  # Start dragging on click
         canvas.mpl_connect("motion_notify_event", on_motion)  # Drag on motion
         canvas.mpl_connect("button_release_event", on_release)  # Stop dragging on releas
-
-
 def findNewInd():
     global ind, indNow
     if len(ind) == numberAll:
@@ -786,7 +769,6 @@ def findNewInd():
             break
     return indNow
 
-
 #### Save the results ####
 def makeEntry(name):
     """
@@ -799,12 +781,36 @@ def makeEntry(name):
     tNow = time.strftime("%Y/%m/%d-%H:%M")
 
     # check if the checkboxes are correct
-    if (checkbox11_var.get() or checkbox12_var.get() or checkbox13_var.get()) and \
-            (checkbox21_var.get() or checkbox22_var.get() or checkbox23_var.get() or checkbox24_var.get()):
+    if checkbox11_var.get() or ((checkbox11_var.get() or checkbox12_var.get() or checkbox13_var.get()) and \
+            (checkbox21_var.get() or checkbox22_var.get() or checkbox23_var.get() or checkbox24_var.get())):
 
-        if checkbox11_var.get() and attempt1:
-            attempt1 = False
-            return False, True
+        if checkbox11_var.get():
+            if attempt1:
+                attempt1 = False
+                return False, True
+            else:
+                if checkboxAwesome_var.get():
+                    awesomeFlag = 1
+                else:
+                    awesomeFlag = 0
+
+                if checkbox14Redshift_var.get():
+                    redshiftFlag = 1
+                else:
+                    redshiftFlag = 0
+                # check if it was done already
+                i = where(previousTable['ID'] == name)[0]
+                if len(i) > 0:
+                    previousTable = previousTable[where(previousTable['ID'] != name)[0]]
+                previousTable.add_row([name, -1, 0, comments.get(), 'masked', tNow, awesomeFlag, redshiftFlag])
+                previousTable.write(table_path, overwrite=True)
+                if kidsData == kidsDataOnline:
+                    previousTable.write(kidsData + '/VisualInspectionResults/' + table_path, overwrite=True)
+
+                # remove old input
+                morphByText_Entryl.delete(0, tk.END)
+                comments.delete(0, tk.END)
+                return False, False
         else:
             # get correct type
             if checkbox11_var.get():
@@ -856,7 +862,6 @@ def makeEntry(name):
     else:
         return True, True
 
-
 #### Zoom in/out ####
 def on_click(event):
     global drag_start
@@ -877,8 +882,6 @@ def on_click(event):
         yClick = y / height / yAxis  # 0.9 from the axis ratio
 
         drag_start = (xClick, yClick)  # Store the initial click position
-
-
 def on_motion(event):
     global drag_start
     """
@@ -923,8 +926,6 @@ def on_motion(event):
     yClick = y / height / yAxis
 
     drag_start = (xClick, yClick)  # Store the initial click position
-
-
 def on_release(event):
     """
     This function is used when stop dragging
@@ -932,8 +933,6 @@ def on_release(event):
     global drag_start
     drag_start = None  # Reset the drag start position
     event.canvas.draw()  # Ensure the final state is drawn
-
-
 def on_scroll(event):
     """
     This is used during zoom-in/out
@@ -965,8 +964,6 @@ def on_scroll(event):
 
     # Redraw the canvas
     event.canvas.draw()
-
-
 #### Update variables ####
 def update_entry():
     """
@@ -1040,8 +1037,6 @@ def update_entry():
         checkbox23_var.set(False)
         checkbox24_var.set(False)
     top_frame.after(200, update_entry)
-
-
 def update_entry():
     """
     Function for quick updates of the entry values
@@ -1114,8 +1109,6 @@ def update_entry():
         checkbox23_var.set(False)
         checkbox24_var.set(False)
     top_frame.after(200, update_entry)
-
-
 def resetCheckboxes():
     checkbox11_var.set(False)
     checkbox12_var.set(False)
@@ -1126,8 +1119,6 @@ def resetCheckboxes():
     checkbox24_var.set(False)
     checkboxAwesome_var.set(False)
     checkbox14Redshift_var.set(False)
-
-
 def updateOnlyCheckBoxes(n):
     textNew = ''
     if n == 0:
@@ -1195,8 +1186,6 @@ def updateOnlyCheckBoxes(n):
 
     morphByText_Entryl.delete(0, tk.END)
     morphByText_Entryl.insert(tk.END, textNew)
-
-
 def updateOnChange():
     global indNow, ind, attempt1
     morphByText_Entryl.delete(0, tk.END)
@@ -1230,8 +1219,6 @@ def updateOnChange():
         attempt1 = False
         preciousResults = str(preciousResults['Class']) + str(preciousResults['Morphology'])
     morphByText_Entryl.insert(tk.END, preciousResults)
-
-
 def makeInputButtons():
     global checkboxDataStorage_var
     checkboxDataStorage_var.set(True)
