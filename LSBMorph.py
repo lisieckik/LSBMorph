@@ -678,12 +678,15 @@ def make6figures(gal):
     :param gal: Entry from the input table
     :return:
     """
-    global attempt1, plotsList, contrasts, nContrast, canvasPlots
+    global attempt1, plotsList, contrasts, nContrast, canvasPlots, visibleMask
     # Get the ID
     name = gal['ID']
     print(name)
     ### Open images ###
-
+    try:
+        visibleMask
+    except:
+        visibleMask = False
     # start with Galfit
     if gal['Nucleus'] == 1:
         var = 'double'
@@ -749,7 +752,7 @@ def make6figures(gal):
         # make image
         if i == 0:
             ax.contour(maskOG, [0.5], colors = [colorsForPlots[2]], zorder = 1)
-            ax.collections[0].set_visible(False)
+            ax.collections[0].set_visible(visibleMask)
 
         if i < 4:
             ax.imshow(images[i],vmax=vmax[i], cmap=colorsForPlots[0])
@@ -1006,7 +1009,7 @@ def update_entry():
     """
     Function for quick updates of the entry values
     """
-    global plotsList, canvasPlots
+    global plotsList, canvasPlots, visibleMask
     txtOld = morphByText_Entryl.get()
     txtNew = ''
     for l in txtOld:
@@ -1026,8 +1029,10 @@ def update_entry():
             skip(name = interestingIDs[0])
         elif l == 'm':
             if plotsList[0].collections[0].get_visible():
+                visibleMask = False
                 plotsList[0].collections[0].set_visible(False)
             else:
+                visibleMask = True
                 plotsList[0].collections[0].set_visible(True)
             canvasPlots[0].draw()
         else:
