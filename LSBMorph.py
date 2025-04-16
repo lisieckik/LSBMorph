@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-from numpy import append, where, random, percentile, zeros, logical_not, array
+from numpy import append, where, random, percentile, zeros, logical_not, array, min
 from matplotlib.pyplot import close
 import matplotlib.patches as patches
 from PIL import Image, ImageTk
@@ -25,7 +25,8 @@ secondGalaxiesList = ''  # where do you store galaxies with 2nd fit
 kidsData = ''  # where do you store images
 colorsForPlots = ['viridis', 'red', 'black']
 # some random IDs which look cool
-interestingIDs = ['KiDSDR4_J001706.317-334825.57',
+interestingIDs = ['KiDSDR4_J002708.457-290458.13',
+                  'KiDSDR4_J001706.317-334825.57',
                   'KiDSDR4_J000813.589-343441.84',
                   'KiDSDR4_J005225.587-311218.74',
                   'KiDSDR4_J002142.794-323509.57',
@@ -301,6 +302,7 @@ def prepareTable():
     buttonSkip.grid(row=3, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
     buttonAladin.grid(row=4, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
     # buttonWeird.grid(row=3, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
+    buttonContrast.grid(row=3, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
     buttonExamples.grid(row=2, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
 
     # other widgets visible
@@ -493,7 +495,7 @@ def setColors():
     buttonSet = tk.Button(newWindowColors, text='Set colors', font=("Arial", 20), command=setForReal)
     buttonSet.grid(row=4, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 def setForReal():
-    global newWindowColors, entry_c1, entry_c2, entry_c3, colorsForPlots, kidsData, galaxiesList, secondGalaxiesList, plotsList
+    global newWindowColors, entry_c1, entry_c2, entry_c3, colorsForPlots, kidsData, galaxiesList, secondGalaxiesList, plotsList, canvasPlots
     fig = Figure()
     ax = fig.add_axes([0, 0, 1, 1])
     try:
@@ -525,11 +527,38 @@ def setForReal():
                 ax.patches[0].set_edgecolor(colorsForPlots[1])
         plotsList[3].lines[0].set_color(colorsForPlots[2])
         plotsList[3].collections[0].set_color(colorsForPlots[2])
+        plotsList[0].collections[0].set_color(colorsForPlots[2])
+        for can in canvasPlots:
+            can.draw()
     except Exception as err:
         print(err)
         pass
     newWindowColors.destroy()
+def changeContrast():
+    global plotsList,contrasts, nContrast, canvasPlots
+    if nContrast > len(contrasts)-1 or nContrast < 0:
+        nContrast = 0
+        for ax in range(4):
+            im = plotsList[ax].images[0]
+            im.set_clim(vmax=contrasts[0], vmin=0)  # Update vmin/vmax
+            canvasPlots[ax].draw_idle()
+        return
 
+    elif nContrast == 0:
+        for ax in range(4):
+            im = plotsList[ax].images[0]
+            im.norm.autoscale(im.get_array())
+            canvasPlots[ax].draw_idle()
+        im = plotsList[4].images[0]
+        im.set_clim(vmax=contrasts[2])  # Update vmin/vmax
+        canvasPlots[4].draw_idle()
+
+    for ax in range(3):
+        im = plotsList[ax].images[0]
+        im.set_clim(vmax=contrasts[nContrast])  # Update vmin/vmax
+        canvasPlots[ax].draw_idle()
+
+    nContrast +=1
 #### Show different galaxy ####
 def findNext(firstTime=False):
     global ind, indNow, kidsTable, attempt1
@@ -635,9 +664,12 @@ def skip(name=''):
     if name == '':
         ind = append(ind, [random.randint(0, numberAll)])
     else:
-        i = where(kidsTable['ID'] == interestingIDs[random.randint(0, len(interestingIDs))])[0]
+        i = where(kidsTable['ID'] == name)[0]
         if len(i) == 0: return
-        ind = append(ind, i)
+        if len(where(ind == i)[0]) >0:
+            pass
+        else:
+            ind = append(ind, i)
     resetCheckboxes()
     indNow = ind[-1]
     make6figures(kidsTable[indNow])
@@ -646,7 +678,7 @@ def make6figures(gal):
     :param gal: Entry from the input table
     :return:
     """
-    global attempt1, plotsList
+    global attempt1, plotsList, contrasts, nContrast, canvasPlots
     # Get the ID
     name = gal['ID']
     print(name)
@@ -658,21 +690,21 @@ def make6figures(gal):
     else:
         var = 'single'
 
+    contrasts = []
     if attempt1:
         imgblock = fits.open(kidsData + '/r_imgblocks/%s_component/imgblock_%s.fits' % (var, name))
     else:
         imgblock = fits.open(kidsData + '/r_imgblocks/%s_component_unmasked/imgblock_%s.fits' % (var, name))
 
     # now mask
-    try:
-        mask = fits.getdata(kidsData + '/masks_r/mask%s.fits' % name)
-        mask = imgblock[1].data * logical_not(mask) * one_jansky_arcsec_kids
-        vmax = percentile(mask, 99)
-        vmin = percentile(mask, 50)
-    except:
-        mask = zeros([200, 200])
-        vmax = percentile(imgblock[1].data * one_jansky_arcsec_kids, 99)
-        vmin = percentile(imgblock[1].data * one_jansky_arcsec_kids, 50)
+
+    maskOG = fits.getdata(kidsData + '/masks_r/mask%s.fits' % name)
+    mask = imgblock[1].data * logical_not(maskOG) * one_jansky_arcsec_kids
+    vmax = percentile(mask, 99)
+    contrasts = percentile(mask, [100,  99.9, 99.5,99, 90, 80])
+
+
+    nContrast = -1
     # Names of the titles
     axisNames = ['Masked r-Band', 'GalfitModel', 'Residual', 'Raw r-band', 'APLpy', 'Zoomed out']
     #
@@ -706,6 +738,7 @@ def make6figures(gal):
               luptonImage]
     ny = 0
     plotsList = []
+    canvasPlots = []
     for i in range(6):
         if i == 3: ny += 1
         # Make new figure
@@ -714,6 +747,10 @@ def make6figures(gal):
         plotsList.append(ax)
 
         # make image
+        if i == 0:
+            ax.contour(maskOG, [0.5], colors = [colorsForPlots[2]], zorder = 1)
+            ax.collections[0].set_visible(False)
+
         if i < 4:
             ax.imshow(images[i],vmax=vmax[i], cmap=colorsForPlots[0])
         else:
@@ -737,7 +774,7 @@ def make6figures(gal):
 
         if i == 3:  # and gal['Z'] >0:
             # try:
-            ax.plot([gal['X'], gal['RedshiftX']], [gal['Y'], gal['RedshiftY']], lw=2, ls='--', c='k')
+            ax.plot([gal['X'], gal['RedshiftX']], [gal['Y'], gal['RedshiftY']], lw=2, ls='--', c=colorsForPlots[2])
             ax.scatter(gal['RedshiftX'], gal['RedshiftY'], c=colorsForPlots[2], marker='x', s=150)
         # except:
         #     ax.plot([gal['X'], redshiftX], [gal['Y'], redshiftY], lw = 2, ls = '--', c = colorsForPlots[2])
@@ -755,6 +792,7 @@ def make6figures(gal):
         canvas.mpl_connect("button_press_event", on_click)  # Start dragging on click
         canvas.mpl_connect("motion_notify_event", on_motion)  # Drag on motion
         canvas.mpl_connect("button_release_event", on_release)  # Stop dragging on releas
+        canvasPlots.append(canvas)
 def findNewInd():
     global ind, indNow
     if len(ind) == numberAll:
@@ -964,84 +1002,40 @@ def on_scroll(event):
 
     # Redraw the canvas
     event.canvas.draw()
-#### Update variables ####
 def update_entry():
     """
     Function for quick updates of the entry values
     """
+    global plotsList, canvasPlots
     txtOld = morphByText_Entryl.get()
-    n0 = 0
-    try:
-        if txtOld[0] == '-':
-            if txtOld[1] == '1':
-                n0 = 2
-                checkbox11_var.set(True)
-                checkbox12_var.set(False)
-                checkbox13_var.set(False)
-
-        elif txtOld[0] == '0':
-            checkbox11_var.set(False)
-            checkbox12_var.set(True)
-            checkbox13_var.set(False)
-        elif txtOld[0] == '1':
-            checkbox11_var.set(False)
-            checkbox12_var.set(False)
-            checkbox13_var.set(True)
-        else:
-            checkbox11_var.set(False)
-            checkbox12_var.set(False)
-            checkbox13_var.set(False)
-        if n0 == 0:
-            n0 = 1
-    except:
-        checkbox11_var.set(False)
-        checkbox12_var.set(False)
-        checkbox13_var.set(False)
-
-    if n0 > 0:
-        try:
-            if txtOld[n0] == '-':
-                if txtOld[n0 + 1] == '1':
-                    checkbox21_var.set(True)
-                    checkbox22_var.set(False)
-                    checkbox23_var.set(False)
-                    checkbox24_var.set(False)
-            elif txtOld[n0] == '0':
-                checkbox21_var.set(False)
-                checkbox22_var.set(True)
-                checkbox23_var.set(False)
-                checkbox24_var.set(False)
-            elif txtOld[n0] == '1':
-                checkbox21_var.set(False)
-                checkbox22_var.set(False)
-                checkbox23_var.set(True)
-                checkbox24_var.set(False)
-            elif txtOld[n0] == '2':
-                checkbox21_var.set(False)
-                checkbox22_var.set(False)
-                checkbox23_var.set(False)
-                checkbox24_var.set(True)
+    txtNew = ''
+    for l in txtOld:
+        if l == 'r':
+            if checkbox14Redshift_var.get():
+                checkbox14Redshift_var.set(False)
             else:
-                checkbox21_var.set(False)
-                checkbox22_var.set(False)
-                checkbox23_var.set(False)
-                checkbox24_var.set(False)
-        except:
-            checkbox21_var.set(False)
-            checkbox22_var.set(False)
-            checkbox23_var.set(False)
-            checkbox24_var.set(False)
-    else:
-        checkbox21_var.set(False)
-        checkbox22_var.set(False)
-        checkbox23_var.set(False)
-        checkbox24_var.set(False)
-    top_frame.after(200, update_entry)
-def update_entry():
-    """
-    Function for quick updates of the entry values
-    """
-    txtOld = morphByText_Entryl.get()
+                checkbox14Redshift_var.set(True)
+        elif l == 'a':
+            if checkboxAwesome_var.get():
+                checkboxAwesome_var.set(False)
+            else:
+                checkboxAwesome_var.set(True)
+        elif l == 'c':
+            changeContrast()
+        elif l == '+':
+            skip(name = interestingIDs[0])
+        elif l == 'm':
+            if plotsList[0].collections[0].get_visible():
+                plotsList[0].collections[0].set_visible(False)
+            else:
+                plotsList[0].collections[0].set_visible(True)
+            canvasPlots[0].draw()
+        else:
+            txtNew += l
+
+    txtOld = txtNew
+    morphByText_Entryl.delete(0, tk.END)
+    morphByText_Entryl.insert(tk.END, txtOld)
     n0 = 0
     try:
         if txtOld[0] == '-':
@@ -1361,9 +1355,9 @@ checkbox14Redshift = tk.Checkbutton(top_frame, text="Valid redshift", variable=c
 # Second column
 checkbox21 = tk.Checkbutton(top_frame, text="Featureless [-1]", variable=checkbox21_var, font=("Arial", 16),
                             command=lambda n=3: updateOnlyCheckBoxes(n))
-checkbox22 = tk.Checkbutton(top_frame, text="Not sure [0]", variable=checkbox22_var, font=("Arial", 16),
+checkbox22 = tk.Checkbutton(top_frame, text="Not sure (Irr/other) [0]", variable=checkbox22_var, font=("Arial", 16),
                             command=lambda n=4: updateOnlyCheckBoxes(n))
-checkbox23 = tk.Checkbutton(top_frame, text="LTG (Sp/Irr) [1]", variable=checkbox23_var, font=("Arial", 16),
+checkbox23 = tk.Checkbutton(top_frame, text="LTG (Sp) [1]", variable=checkbox23_var, font=("Arial", 16),
                             command=lambda n=5: updateOnlyCheckBoxes(n))
 checkbox24 = tk.Checkbutton(top_frame, text="ETG (Ell) [2]", variable=checkbox24_var, font=("Arial", 16),
                             command=lambda n=6: updateOnlyCheckBoxes(n))
@@ -1405,6 +1399,8 @@ buttonOptions.grid(row=1, column=9, sticky="ew", padx=5, pady=5)
 
 buttonWeird = tk.Button(top_frame, text='Weird', font=("Arial", 20),
                         command=lambda i=interestingIDs[random.randint(0, len(interestingIDs))]: skip(name=i))
+buttonContrast = tk.Button(top_frame, text='Contrast', font=("Arial", 20),
+                        command=changeContrast)
 buttonExamples = tk.Button(top_frame, text='Exemplary', font=("Arial", 20))
 buttonExamples.bind('<Button-1>', helpMe)
 
