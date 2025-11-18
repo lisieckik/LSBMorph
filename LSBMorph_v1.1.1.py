@@ -16,72 +16,13 @@ from os.path import expanduser
 galaxiesList = ''  # where do you store galaxies to classify
 ##########################################################################
 
-
-home_dir = expanduser("~")
-secondGalaxiesListOnline = f"{home_dir}/remote_kids_data/LSB_search/catalogs/Galfit_versions/All_candidates_r_2.fits"
-kidsDataOnline = f"{home_dir}/remote_kids_data/LSB_search"
-
 secondGalaxiesList = ''  # where do you store galaxies with 2nd fit
 kidsData = ''  # where do you store images
 colorsForPlots = ['viridis', 'red', 'black']
 # some random IDs which look cool
-interestingIDs = ['KiDSDR4_J002708.457-290458.13',
-                  'KiDSDR4_J001706.317-334825.57',
-                  'KiDSDR4_J000813.589-343441.84',
-                  'KiDSDR4_J005225.587-311218.74',
-                  'KiDSDR4_J002142.794-323509.57',
-                  'KiDSDR4_J005302.514-311157.22',
-                  'KiDSDR4_J000815.233-345246.72',
-                  'KiDSDR4_J001710.948-342918.25',
-                  'KiDSDR4_J003918.218-324602.08',
-                  'KiDSDR4_J003258.146-324548.75',
-                  'KiDSDR4_J003050.509-301715.66',
-                  'KiDSDR4_J003638.246-323426.78',
-                  'KiDSDR4_J005231.063-311109.89',
-                  'KiDSDR4_J005300.012-311028.58',
-                  'KiDSDR4_J225640.861-351345.62',
-                  'KiDSDR4_J140056.768-011232.46',
-                  'KiDSDR4_J124323.711+012439.06',
-                  'KiDSDR4_J113023.156+025029.39',
-                  'KiDSDR4_J133250.440-002730.74',
-                  'KiDSDR4_J031652.484-353155.40',
-                  'KiDSDR4_J104527.395-025755.52']
+interestingIDs = ["KiDSDR5_J130429.023-020709.72"]
 
 import subprocess
-
-
-def auto_mount_remote_data():
-    """
-    Automatically mounts the remote LSB data if not already mounted.
-    Assumes sshpass and sshfs are installed and user has access.
-    """
-    home_dir = os.path.expanduser("~")
-    mount_point = os.path.join(home_dir, "remote_kids_data")
-    remote_user = "kidslsbs"
-    remote_host = "10.107.0.229"
-    remote_path = "/data02/Hareesh/KiDS"
-    password = "kids_lsbs"
-
-    if os.path.ismount(mount_point):
-        print(f"✅ Already mounted: {mount_point}")
-        return True
-
-    os.makedirs(mount_point, exist_ok=True)
-
-    sshfs_cmd = [
-        "sshpass", "-p", password,
-        "sshfs", f"{remote_user}@{remote_host}:{remote_path}", mount_point
-    ]
-
-    try:
-        result = subprocess.run(sshfs_cmd, check=True)
-        print(f"✅ Successfully mounted {remote_path} at {mount_point}")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to mount remote directory: {e}")
-        newWindowError("Failed to mount remote directory.\nCheck VPN connection or sshfs setup.")
-        return False
-
 
 #### Group of basic/simple function ####
 def save_when_close():
@@ -103,7 +44,6 @@ def sadEmoji():
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ])
-
 def openAladin():
     global ind, indNow
     """
@@ -163,21 +103,21 @@ def intput_cat(event):
                     entryCatalog.insert(tk.END, filename)
 
                 entryCatalog.configure(state='disabled')
-        elif event.widget == buttonFind2ndCatalog:
-            filename = tk.filedialog.askopenfilename(initialdir=path_start,
-                                                     title="Select a Directory", )
-            if len(filename) != 0:
-                entryFind2ndCatalog.configure(state='normal')
-
-                entryFind2ndCatalog.delete(0, tk.END)
-                secondGalaxiesList = filename
-                if len(filename) > 30:
-                    tt = '../%s' % (filename.split('/')[-1])
-                    entryFind2ndCatalog.insert(tk.END, tt)
-                else:
-                    entryFind2ndCatalog.insert(tk.END, filename)
-
-                entryFind2ndCatalog.configure(state='disabled')
+        # elif event.widget == buttonFind2ndCatalog:
+        #     filename = tk.filedialog.askopenfilename(initialdir=path_start,
+        #                                              title="Select a Directory", )
+        #     if len(filename) != 0:
+        #         entryFind2ndCatalog.configure(state='normal')
+        #
+        #         entryFind2ndCatalog.delete(0, tk.END)
+        #         secondGalaxiesList = filename
+        #         if len(filename) > 30:
+        #             tt = '../%s' % (filename.split('/')[-1])
+        #             entryFind2ndCatalog.insert(tk.END, tt)
+        #         else:
+        #             entryFind2ndCatalog.insert(tk.END, filename)
+        #
+        #         entryFind2ndCatalog.configure(state='disabled')
     else:
         entry.delete(0, tk.END)
         makeInputButtons()
@@ -186,16 +126,10 @@ def intput_cat(event):
         kidsData = ''
     return 'break'
 def dataStorage():
-    if not checkboxDataStorage_var.get():
-        buttonFind2ndCatalog.grid(row=3, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
-        entryFind2ndCatalog.grid(row=3, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
-        buttonBrowseFiles.grid(row=4, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
-        entryData.grid(row=4, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
-    else:
-        buttonBrowseFiles.grid_forget()
-        buttonFind2ndCatalog.grid_forget()
-        entryData.grid_forget()
-        entryFind2ndCatalog.grid_forget()
+    #buttonFind2ndCatalog.grid(row=3, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
+    #entryFind2ndCatalog.grid(row=3, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
+    buttonBrowseFiles.grid(row=4, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
+    entryData.grid(row=4, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
 
 #### Used only once at the start ####
 def newWindowError(message=''):
@@ -212,10 +146,9 @@ def newWindowError(message=''):
 def prepareTable():
     """
     This function prepares or opens the table with results results
-
     """
     global previousTable, table_path, ind, numberAll, kidsTable, secondGalaxiesList, \
-        kidsData, galaxiesList, secondGalaxiesListOnline, kidsDataOnline, secondGalaxiesListData, colorsForPlots
+        kidsData, galaxiesList, secondGalaxiesListOnline, secondGalaxiesListData, colorsForPlots
     # get the name
     person_name = entry.get()
 
@@ -223,23 +156,9 @@ def prepareTable():
     if person_name == '':
         newWindowError('What\'s your name?')
         return
-    # Do you have connection to the VPN
-    if checkboxDataStorage_var.get():
-        if not auto_mount_remote_data():
-            return  # If mount fails, stop the process
-
-        # After mount success, confirm files exist
-        if (not os.path.exists(kidsDataOnline + '/r_imgblocks')
-                or not os.path.exists(secondGalaxiesListOnline)):
-            newWindowError('Data not found even after mount.\nPlease check with admin.')
-            return
-
-        # If VPN and mount are successful, set the variables
-        kidsData = kidsDataOnline
-        secondGalaxiesList = secondGalaxiesListOnline
 
     # Check data storage
-    if kidsData == "" or not os.path.exists(kidsData + '/r_imgblocks'):
+    if kidsData == "" or not os.path.exists(kidsData + '/Imgblocks'):
         newWindowError('Where is your directory containing data?\n(The one that we should give you)')
         return
     # Check catalogue path
@@ -247,9 +166,9 @@ def prepareTable():
         newWindowError('Where is your catalogue?\n(The one that we should give you)')
         return
     # Check 2nd catalogue path
-    if secondGalaxiesList == '' or not os.path.exists(secondGalaxiesList):
-        newWindowError('Where is your 2nd catalogue?\n(The one that we should give you)')
-        return
+    # if secondGalaxiesList == '' or not os.path.exists(secondGalaxiesList):
+    #     newWindowError('Where is your 2nd catalogue?\n(The one that we should give you)')
+    #     return
 
     # Check if files are valid
     try:
@@ -258,24 +177,21 @@ def prepareTable():
         newWindowError('Wrong path to the galaxy catalogue!\n%s' % err)
         return
 
-    try:
-        secondGalaxiesListData = fits.open(secondGalaxiesList)[1].data
-    except Exception as err:
-        newWindowError('Wrong path to the 2nd galaxy catalogue!\n%s' % err)
-        return
+    # try:
+    #     secondGalaxiesListData = fits.open(secondGalaxiesList)[1].data
+    # except Exception as err:
+    #     newWindowError('Wrong path to the 2nd galaxy catalogue!\n%s' % err)
+    #     return
 
     ### Remove unused part ###
     buttonStart.grid_forget()  # start is not needed
     entry_label.grid_forget()  # entry is changed
-    checkboxDataStorage.grid_forget()
+    #checkboxDataStorage.grid_forget()
     buttonFindCatalog.grid_forget()
     entryCatalog.grid_forget()
     buttonDataStorage.grid_forget()
-    if not checkboxDataStorage_var.get():
-        buttonBrowseFiles.grid_forget()
-        buttonFind2ndCatalog.grid_forget()
-        entryFind2ndCatalog.grid_forget()
-        entryData.grid_forget()
+    entryData.grid_forget()
+    buttonBrowseFiles.grid_forget()
     newentry1_label = tk.Label(top_frame, text="Is it LSB?", font=("Arial", 20))
     newentry1_label.grid(row=0, column=0, columnspan=1, sticky="w", padx=5, pady=5)  # Use 2 parts for the label
     newentry2_label = tk.Label(top_frame, text="Morphology Type", font=("Arial", 20))
@@ -293,13 +209,13 @@ def prepareTable():
     checkbox22.grid(row=2, column=1, padx=5, pady=4, sticky="w")
     checkbox23.grid(row=3, column=1, padx=5, pady=4, sticky="w")
     checkbox24.grid(row=4, column=1, padx=5, pady=4, sticky="w")
-    checkbox14Redshift.grid(row=4, column=0, padx=5, pady=4, sticky="w")
+    #checkbox14Redshift.grid(row=4, column=0, padx=5, pady=4, sticky="w")
     buttonAwesome.grid(row=4, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
 
     # buttons visible
     buttonNext.grid(row=1, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
     buttonPrevious.grid(row=2, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
-    buttonSkip.grid(row=3, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
+    #buttonSkip.grid(row=3, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
     buttonAladin.grid(row=4, column=7, columnspan=1, sticky="ew", padx=5, pady=1)
     # buttonWeird.grid(row=3, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
     buttonContrast.grid(row=3, column=9, columnspan=1, sticky="ew", padx=5, pady=1)
@@ -321,12 +237,6 @@ def prepareTable():
     table_path = 'vis_inspect_%s.fits' % person_name
     remoteTable = None
 
-    if kidsData == kidsDataOnline:
-        try:
-            remoteTable = Table.read(kidsData + '/VisualInspectionResults/' + table_path)
-        except:
-            pass
-
     if os.path.exists(table_path):
         previousTable = Table.read(table_path)
         previousTable = previousTable["ID", "Class", "Morphology", "Comments", 'Sky_Bkg',
@@ -344,8 +254,6 @@ def prepareTable():
                 dtype=["str", "i8", "i8", "str", "str", "str", "i8", "i8"]
             )
         previousTable.write(table_path, overwrite=True)
-        if kidsData == kidsDataOnline:
-            previousTable.write(kidsData + '/VisualInspectionResults/' + table_path, overwrite=True)
 
     kidsTable = fits.open(galaxiesList)[1].data
     numberAll = len(kidsTable)
@@ -389,17 +297,14 @@ def helpMe(event):
         tipsHere = hints
     elif event.widget == buttonDataStorage:
         newWindowHelp.title("Data storage connection")
-        war = tk.Label(newWindowHelp, text='Here are Ubuntu based hints for connecting to the data storage!',
+        war = tk.Label(newWindowHelp, text='You should have all data stored locally this time (~20GB)',
                        font=("Arial", 20))
-        try:
-            dsHints
-        except:
-            dsHints = len(os.listdir('Tips/Connection'))
-            dsHints = ['Tips/Connection/%i.png' % f for f in range(dsHints)]
-            dsHints = [Image.open(f) for f in dsHints]
-            # dsHints = [f.crop((0, 0, 1148, 630)) for f in dsHints]
-        tipsHere = dsHints
-        nCircles = len(dsHints)
+        eHints = [Image.open("Tips/Connection/0.png")]
+        tipsHere = eHints
+        nCircles = len(eHints)
+        canvasForCircles = tk.Canvas(newWindowHelp)
+        showTip(0, nCircles, tipsHere)
+
     elif event.widget == buttonExamples:
         newWindowHelp.title("Hard decisions")
         war = tk.Label(newWindowHelp,
@@ -413,6 +318,7 @@ def helpMe(event):
             eHints = [Image.open(f) for f in eHints]
         tipsHere = eHints
         nCircles = len(eHints)
+        showTip(0, nCircles, tipsHere)
     newWindowHelp.geometry("%ix%i" % (1000, 600))
     war.grid(row=0, column=1, columnspan=1, sticky="ew", padx=20, pady=1)
     newWindowHelp.grid_columnconfigure(1, weight=1, minsize=800)
@@ -437,6 +343,19 @@ def helpMe(event):
     showTip(0, nCircles, tipsHere)
 def showTip(n, nmax, tipsHere):
     global tipNumber, newWindowHelp, canvasForCircles, ccs
+
+    if nmax == 1:
+        imHere = tipsHere[tipNumber]
+        fig = Figure(dpi=100)
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.imshow(imHere)
+        ax.set_yticks([], [])
+        ax.set_xticks([], [])
+        canvas = FigureCanvasTkAgg(fig, master=newWindowHelp)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        return
+
     if n + tipNumber == nmax:
         tipNumber = len(tipsHere) - 1
         return
@@ -561,7 +480,7 @@ def changeContrast():
     nContrast +=1
 #### Show different galaxy ####
 def findNext(firstTime=False):
-    global ind, indNow, kidsTable, attempt1
+    global ind, indNow, kidsTable
     """
     This function finds the next galaxy to classify
     """
@@ -588,7 +507,6 @@ def findNext(firstTime=False):
 
         # reset checkboxes
         resetCheckboxes()
-        attempt1 = True
 
         # if nothing happend, find new random entry
         if ind[-1] == indNow:
@@ -627,7 +545,7 @@ def findNext(firstTime=False):
         war = tk.Label(newWindow, text='You finished!', font=("Arial", 20))
         war.pack(fill=tk.BOTH, expand=1)
 def findPrevious(name=''):
-    global ind, indNow, attempt1
+    global ind, indNow
     """
     If you want to see the previous anwser
     """
@@ -648,8 +566,7 @@ def findPrevious(name=''):
     # show the galaxy
     make6figures(kidsTable[indNow])
 def skip(name=''):
-    global ind, indNow, attempt1
-    attempt1 = True
+    global ind, indNow
 
     """function used to skip current galaxy"""
     morphByText_Entryl.delete(0, tk.END)
@@ -678,7 +595,7 @@ def make6figures(gal):
     :param gal: Entry from the input table
     :return:
     """
-    global attempt1, plotsList, contrasts, nContrast, canvasPlots, visibleMask
+    global plotsList, contrasts, nContrast, canvasPlots, visibleMask
     # Get the ID
     name = gal['ID']
     print(name)
@@ -687,21 +604,13 @@ def make6figures(gal):
         visibleMask
     except:
         visibleMask = False
-    # start with Galfit
-    if gal['Nucleus'] == 1:
-        var = 'double'
-    else:
-        var = 'single'
 
     contrasts = []
-    if attempt1:
-        imgblock = fits.open(kidsData + '/r_imgblocks/%s_component/imgblock_%s.fits' % (var, name))
-    else:
-        imgblock = fits.open(kidsData + '/r_imgblocks/%s_component_unmasked/imgblock_%s.fits' % (var, name))
+    imgblock = fits.open(kidsData + '/Imgblocks/imgblock_%s.fits' % (name))
 
     # now mask
 
-    maskOG = fits.getdata(kidsData + '/masks_r/mask%s.fits' % name)
+    maskOG = fits.getdata(kidsData + '/Masks/mask%s.fits' % name)
     mask = imgblock[1].data * logical_not(maskOG) * one_jansky_arcsec_kids
     vmax = percentile(mask, 99)
     contrasts = percentile(mask, [100,  99.9, 99.5,99, 90, 80])
@@ -715,14 +624,14 @@ def make6figures(gal):
     vmax = [vmax, vmax, vmax, percentile(imgblock[1].data * one_jansky_arcsec_kids,99.7), 0, 0]
     warMessage = ''
     try:
-        aplpyImage = Image.open(kidsData + '/color_images/aplpy/' + name + '.png')
+        aplpyImage = Image.open(kidsData + '/Small_RGB/' + name + '_aplpy.png')
         aplpyImage = aplpyImage.transpose(Image.FLIP_TOP_BOTTOM)
     except Exception as Err:
         aplpyImage = sadEmoji()
         warMessage += 'Unfortunatly, we do not have good color image.\nPlease go to the aladin to see the color image.'
 
     try:
-        luptonImage = Image.open(kidsData + '/color_images/Lupton_RGB_Images/' + name + '.png')
+        luptonImage = Image.open(kidsData + '/Large_RGB/' + name + '_rgb.png')
     except Exception as Err:
         luptonImage = sadEmoji()
         if warMessage == '':
@@ -734,9 +643,9 @@ def make6figures(gal):
 
     # list of images
     images = [mask,
+              imgblock[5].data * one_jansky_arcsec_kids,
+              imgblock[8].data * one_jansky_arcsec_kids,
               imgblock[2].data * one_jansky_arcsec_kids,
-              imgblock[3].data * one_jansky_arcsec_kids,
-              imgblock[1].data * one_jansky_arcsec_kids,
               aplpyImage,
               luptonImage]
     ny = 0
@@ -766,19 +675,19 @@ def make6figures(gal):
         if i < 4:
             ellipse = patches.Ellipse(
                 (gal['X'], gal['Y']),
-                width=(gal['r_r'] * 2 / 0.2),
-                height=(gal['r_r'] * 2 / 0.2) * gal['q'],
-                angle=gal['PA'] + 90, linewidth=1.5,
+                width=(gal['sersic_reff_arcsec_r'] * 2 / 0.2),
+                height=(gal['sersic_reff_arcsec_r'] * 2 / 0.2) * gal['sersic_q'],
+                angle=gal['sersic_PA'] + 90, linewidth=1.5,
                 color=colorsForPlots[1], fill=False, linestyle='-', label='Modelled galaxy'
             )
 
             ax.add_patch(ellipse)
             ax.legend(handles=[ellipse])
 
-        if i == 3:  # and gal['Z'] >0:
-            # try:
-            ax.plot([gal['X'], gal['RedshiftX']], [gal['Y'], gal['RedshiftY']], lw=2, ls='--', c=colorsForPlots[2])
-            ax.scatter(gal['RedshiftX'], gal['RedshiftY'], c=colorsForPlots[2], marker='x', s=150)
+        # if i == 3:  # and gal['Z'] >0:
+        #     # try:
+        #     ax.plot([gal['X'], gal['RedshiftX']], [gal['Y'], gal['RedshiftY']], lw=2, ls='--', c=colorsForPlots[2])
+        #     ax.scatter(gal['RedshiftX'], gal['RedshiftY'], c=colorsForPlots[2], marker='x', s=150)
         # except:
         #     ax.plot([gal['X'], redshiftX], [gal['Y'], redshiftY], lw = 2, ls = '--', c = colorsForPlots[2])
         #     ax.scatter(redshiftX, redshiftY, c = 'k', marker = 'x', s = 150)
@@ -816,7 +725,7 @@ def makeEntry(name):
     :param name: ID of the galaxy
     :return: if entry was done Fasle, else True
     """
-    global newWindowRemake, previousTable, kidsData, galaxiesList, attempt1, kidsDataOnline
+    global newWindowRemake, previousTable, kidsData, galaxiesList
 
     # time of the entry
     tNow = time.strftime("%Y/%m/%d-%H:%M")
@@ -826,32 +735,28 @@ def makeEntry(name):
             (checkbox21_var.get() or checkbox22_var.get() or checkbox23_var.get() or checkbox24_var.get())):
 
         if checkbox11_var.get():
-            if attempt1:
-                attempt1 = False
-                return False, True
+
+            if checkboxAwesome_var.get():
+                awesomeFlag = 1
             else:
-                if checkboxAwesome_var.get():
-                    awesomeFlag = 1
-                else:
-                    awesomeFlag = 0
+                awesomeFlag = 0
 
-                if checkbox14Redshift_var.get():
-                    redshiftFlag = 1
-                else:
-                    redshiftFlag = 0
-                # check if it was done already
-                i = where(previousTable['ID'] == name)[0]
-                if len(i) > 0:
-                    previousTable = previousTable[where(previousTable['ID'] != name)[0]]
-                previousTable.add_row([name, -1, 0, comments.get(), 'masked', tNow, awesomeFlag, redshiftFlag])
-                previousTable.write(table_path, overwrite=True)
-                if kidsData == kidsDataOnline:
-                    previousTable.write(kidsData + '/VisualInspectionResults/' + table_path, overwrite=True)
+            # if checkbox14Redshift_var.get():
+            #     redshiftFlag = 1
+            # else:
+            #     redshiftFlag = 0
+            redshiftFlag = -1
+            # check if it was done already
+            i = where(previousTable['ID'] == name)[0]
+            if len(i) > 0:
+                previousTable = previousTable[where(previousTable['ID'] != name)[0]]
+            previousTable.add_row([name, -1, 0, comments.get(), 'masked', tNow, awesomeFlag, redshiftFlag])
+            previousTable.write(table_path, overwrite=True)
 
-                # remove old input
-                morphByText_Entryl.delete(0, tk.END)
-                comments.delete(0, tk.END)
-                return False, False
+            # remove old input
+            morphByText_Entryl.delete(0, tk.END)
+            comments.delete(0, tk.END)
+            return False, False
         else:
             # get correct type
             if checkbox11_var.get():
@@ -876,10 +781,11 @@ def makeEntry(name):
             else:
                 awesomeFlag = 0
 
-            if checkbox14Redshift_var.get():
-                redshiftFlag = 1
-            else:
-                redshiftFlag = 0
+            # if checkbox14Redshift_var.get():
+            #     redshiftFlag = 1
+            # else:
+            #     redshiftFlag = 0
+            redshiftFlag = -1
 
             # check if it was done already
             i = where(previousTable['ID'] == name)[0]
@@ -887,14 +793,9 @@ def makeEntry(name):
                 previousTable = previousTable[where(previousTable['ID'] != name)[0]]
 
             # add the row to the table
-            if attempt1 == True:
-                previousTable.add_row([name, x, mor, comments.get(), 'un_masked', tNow, awesomeFlag, redshiftFlag])
-            else:
-                previousTable.add_row([name, x, mor, comments.get(), 'masked', tNow, awesomeFlag, redshiftFlag])
+            previousTable.add_row([name, x, mor, comments.get(), '---', tNow, awesomeFlag, redshiftFlag])
 
             previousTable.write(table_path, overwrite=True)
-            if kidsData == kidsDataOnline:
-                previousTable.write(kidsData + '/VisualInspectionResults/' + table_path, overwrite=True)
 
             # remove old input
             morphByText_Entryl.delete(0, tk.END)
@@ -1014,10 +915,11 @@ def update_entry():
     txtNew = ''
     for l in txtOld:
         if l == 'r':
-            if checkbox14Redshift_var.get():
-                checkbox14Redshift_var.set(False)
-            else:
-                checkbox14Redshift_var.set(True)
+            # if checkbox14Redshift_var.get():
+            #     checkbox14Redshift_var.set(False)
+            # else:
+            #     checkbox14Redshift_var.set(True)
+            pass
         elif l == 'a':
             if checkboxAwesome_var.get():
                 checkboxAwesome_var.set(False)
@@ -1026,7 +928,10 @@ def update_entry():
         elif l == 'c':
             changeContrast()
         elif l == '+':
-            skip(name = interestingIDs[0])
+            try:
+                skip(name = interestingIDs[0])
+            except:
+                pass
         elif l == 'm':
             if plotsList[0].collections[0].get_visible():
                 visibleMask = False
@@ -1107,7 +1012,7 @@ def update_entry():
         checkbox22_var.set(False)
         checkbox23_var.set(False)
         checkbox24_var.set(False)
-    top_frame.after(200, update_entry)
+    top_frame.after(50, update_entry)
 def resetCheckboxes():
     checkbox11_var.set(False)
     checkbox12_var.set(False)
@@ -1117,7 +1022,7 @@ def resetCheckboxes():
     checkbox23_var.set(False)
     checkbox24_var.set(False)
     checkboxAwesome_var.set(False)
-    checkbox14Redshift_var.set(False)
+    #checkbox14Redshift_var.set(False)
 def updateOnlyCheckBoxes(n):
     textNew = ''
     if n == 0:
@@ -1186,7 +1091,7 @@ def updateOnlyCheckBoxes(n):
     morphByText_Entryl.delete(0, tk.END)
     morphByText_Entryl.insert(tk.END, textNew)
 def updateOnChange():
-    global indNow, ind, attempt1
+    global indNow, ind
     morphByText_Entryl.delete(0, tk.END)
     comments.delete(0, tk.END)
     indPrevious = where(previousTable['ID'] == kidsTable[indNow]['ID'])[0]
@@ -1207,24 +1112,19 @@ def updateOnChange():
         checkboxAwesome_var.set(True)
     if awesomeFlag == 0:
         checkboxAwesome_var.set(False)
-    if preciousResults['ValidRedshift'] == 1:
-        checkbox14Redshift_var.set(True)
-    else:
-        checkbox14Redshift_var.set(False)
-    if preciousResults['Sky_Bkg'] == 'masked':
-        attempt1 = True
-        preciousResults = str(preciousResults['Class']) + str(preciousResults['Morphology'])
-    else:
-        attempt1 = False
-        preciousResults = str(preciousResults['Class']) + str(preciousResults['Morphology'])
+    # if preciousResults['ValidRedshift'] == 1:
+    #     checkbox14Redshift_var.set(True)
+    # else:
+    #     checkbox14Redshift_var.set(False)
+
+    preciousResults = str(preciousResults['Class']) + str(preciousResults['Morphology'])
     morphByText_Entryl.insert(tk.END, preciousResults)
 def makeInputButtons():
-    global checkboxDataStorage_var
-    checkboxDataStorage_var.set(True)
-    checkboxDataStorage.grid(row=2, column=2, columnspan=3, sticky="ew", padx=5, pady=5)
     entryCatalog.grid(row=2, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
     buttonFindCatalog.config(text='FindCatalog lsbs_r')
-    buttonFind2ndCatalog.config(text='FindCatalog r_2')
+    buttonBrowseFiles.grid(row=3, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
+    entryData.grid(row=3, column=8, columnspan=2, sticky="ew", padx=5, pady=5)
+    #buttonFind2ndCatalog.config(text='FindCatalog r_2')
     buttonDataStorage.grid(row=3, column=2, columnspan=3, sticky="ew", padx=5, pady=5)
     return
 
@@ -1241,8 +1141,6 @@ yAxis = 0.9
 ind = array([]).astype(int)
 #
 tipNumber = 0
-#
-attempt1 = True
 # This allows to use the same name as preaviously
 files = os.listdir()
 person_name = ''
@@ -1256,7 +1154,7 @@ root.title("LSBMorph")
 root.protocol('WM_DELETE_WINDOW', save_when_close)
 root.geometry("%ix%i" % (root.winfo_screenwidth(), root.winfo_screenheight()))
 
-checkboxDataStorage_var = tk.BooleanVar(value=True)
+#checkboxDataStorage_var = tk.BooleanVar(value=False)
 for i in files:
     i1 = i.split('_')
     if i1[0] == 'vis':
@@ -1269,7 +1167,7 @@ for i in files:
             galaxiesList = otherInfoPath[1].split('\n')[0]
             secondGalaxiesList = otherInfoPath[2].split('\n')[0]
             colorsForPlots = otherInfoPath[3].split()
-            checkboxDataStorage_var = tk.BooleanVar(value=False)
+            #checkboxDataStorage_var = tk.BooleanVar(value=False)
 
 # Prepare top part, for Checkboxes and Entrys
 top_frame = tk.Frame(root)
@@ -1302,9 +1200,9 @@ buttonStart.grid(row=0, column=6, columnspan=2, sticky="ew", padx=5, pady=5)
 
 # Data storage
 
-checkboxDataStorage = tk.Checkbutton(top_frame, text="Get data online (NCBJ intranet needed)",
-                                     variable=checkboxDataStorage_var, font=("Arial", 16),
-                                     command=dataStorage)
+# checkboxDataStorage = tk.Checkbutton(top_frame, text="Get data online (NCBJ intranet needed)",
+#                                      variable=checkboxDataStorage_var, font=("Arial", 16),
+#                                      command=dataStorage)
 
 # set dataStorage button
 buttonDataStorage = tk.Button(top_frame, text='How to connect online?', font=("Arial", 20))
@@ -1316,9 +1214,9 @@ buttonBrowseFiles.bind('<Button-1>', intput_cat)
 entryData = tk.Entry(top_frame, font=("Arial", 12), state="disabled")
 
 entryCatalog = tk.Entry(top_frame, font=("Arial", 12), state="disabled")
-buttonFind2ndCatalog = tk.Button(top_frame, text='FindCatalog N2', font=("Arial", 20))
-buttonFind2ndCatalog.bind('<Button-1>', intput_cat)
-entryFind2ndCatalog = tk.Entry(top_frame, font=("Arial", 12), state="disabled")
+# buttonFind2ndCatalog = tk.Button(top_frame, text='FindCatalog N2', font=("Arial", 20))
+# buttonFind2ndCatalog.bind('<Button-1>', intput_cat)
+#entryFind2ndCatalog = tk.Entry(top_frame, font=("Arial", 12), state="disabled")
 
 if person_name == '':
     buttonFindCatalog = tk.Button(top_frame, text='FindCatalog N1', font=("Arial", 20))
@@ -1334,7 +1232,7 @@ buttonFindCatalog.grid(row=2, column=6, columnspan=2, sticky="ew", padx=5, pady=
 checkbox11_var = tk.BooleanVar(value=False)
 checkbox12_var = tk.BooleanVar(value=False)
 checkbox13_var = tk.BooleanVar(value=False)
-checkbox14Redshift_var = tk.BooleanVar(value=False)
+#checkbox14Redshift_var = tk.BooleanVar(value=False)
 
 checkbox21_var = tk.BooleanVar(value=False)
 checkbox22_var = tk.BooleanVar(value=False)
@@ -1353,10 +1251,10 @@ checkbox12 = tk.Checkbutton(top_frame, text="Non-LSB [0]", variable=checkbox12_v
 
 checkbox13 = tk.Checkbutton(top_frame, text="LSB [1]", variable=checkbox13_var, font=("Arial", 16),
                             command=lambda n=2: updateOnlyCheckBoxes(n))
-checkbox14Redshift = tk.Checkbutton(top_frame, text="Valid redshift", variable=checkbox14Redshift_var,
-                                    font=("Arial", 16),
-                                    bg=rgb_to_hex(c1[1], c1[0], c1[0]),
-                                    activebackground=rgb_to_hex(c2[1], c2[0], c2[0]))
+# checkbox14Redshift = tk.Checkbutton(top_frame, text="Valid redshift", variable=checkbox14Redshift_var,
+#                                     font=("Arial", 16),
+#                                     bg=rgb_to_hex(c1[1], c1[0], c1[0]),
+#                                     activebackground=rgb_to_hex(c2[1], c2[0], c2[0]))
 # Second column
 checkbox21 = tk.Checkbutton(top_frame, text="Featureless [-1]", variable=checkbox21_var, font=("Arial", 16),
                             command=lambda n=3: updateOnlyCheckBoxes(n))
@@ -1402,8 +1300,8 @@ buttonHelp.bind('<Button-1>', helpMe)
 buttonOptions = tk.Button(top_frame, text='Options', font=("Arial", 20), command=setColors)
 buttonOptions.grid(row=1, column=9, sticky="ew", padx=5, pady=5)
 
-buttonWeird = tk.Button(top_frame, text='Weird', font=("Arial", 20),
-                        command=lambda i=interestingIDs[random.randint(0, len(interestingIDs))]: skip(name=i))
+# buttonWeird = tk.Button(top_frame, text='Weird', font=("Arial", 20),
+#                         command=lambda i=interestingIDs[random.randint(0, len(interestingIDs))]: skip(name=i))
 buttonContrast = tk.Button(top_frame, text='Contrast', font=("Arial", 20),
                         command=changeContrast)
 buttonExamples = tk.Button(top_frame, text='Exemplary', font=("Arial", 20))
@@ -1429,14 +1327,14 @@ if person_name != '':
         entryCatalog.insert(tk.END, galaxiesList)
     entryCatalog.configure(state='disabled')
 
-    entryFind2ndCatalog.configure(state='normal')
-    entryFind2ndCatalog.delete(0, tk.END)
+    # entryFind2ndCatalog.configure(state='normal')
+    # entryFind2ndCatalog.delete(0, tk.END)
     if len(secondGalaxiesList) > 30:
         tt = '../%s' % (secondGalaxiesList.split('/')[-1])
-        entryFind2ndCatalog.insert(tk.END, tt)
-    else:
-        entryFind2ndCatalog.insert(tk.END, galaxiesList)
-    entryFind2ndCatalog.configure(state='disabled')
+        #entryFind2ndCatalog.insert(tk.END, tt)
+    # else:
+    #     entryFind2ndCatalog.insert(tk.END, galaxiesList)
+    # entryFind2ndCatalog.configure(state='disabled')
 
 # This one connects the checkboxes with entry
 update_entry()
