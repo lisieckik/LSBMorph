@@ -1260,9 +1260,9 @@ checkbox21 = tk.Checkbutton(top_frame, text="Featureless [-1]", variable=checkbo
                             command=lambda n=3: updateOnlyCheckBoxes(n))
 checkbox22 = tk.Checkbutton(top_frame, text="Not sure (Irr/other) [0]", variable=checkbox22_var, font=("Arial", 16),
                             command=lambda n=4: updateOnlyCheckBoxes(n))
-checkbox23 = tk.Checkbutton(top_frame, text="LTG (Sp) [1]", variable=checkbox23_var, font=("Arial", 16),
+checkbox23 = tk.Checkbutton(top_frame, text="Spiral [1]", variable=checkbox23_var, font=("Arial", 16),
                             command=lambda n=5: updateOnlyCheckBoxes(n))
-checkbox24 = tk.Checkbutton(top_frame, text="ETG (Ell) [2]", variable=checkbox24_var, font=("Arial", 16),
+checkbox24 = tk.Checkbutton(top_frame, text="Elliptical [2]", variable=checkbox24_var, font=("Arial", 16),
                             command=lambda n=6: updateOnlyCheckBoxes(n))
 # Awesome box
 buttonAwesome = tk.Checkbutton(top_frame, text='Awesome', variable=checkboxAwesome_var, font=("Arial", 20),
